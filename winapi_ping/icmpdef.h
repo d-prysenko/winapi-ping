@@ -20,7 +20,7 @@ enum ICMP_Type : uint8_t {
 	INFORMATION_REPLY = 16,
 };
 
-__declspec(align(8)) struct ICMP_Echo_Request {
+__declspec(align(1)) struct ICMP_Echo_Request {
 	ICMP_HEADER;
 	uint16_t id = 0;
 	uint16_t seq_num = 0;

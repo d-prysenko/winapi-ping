@@ -23,9 +23,9 @@ int main()
 	try {
 		auto time = icmp_client.ping("google.com");
 
-		printf("ping time: %f\n", std::chrono::duration_cast<std::chrono::microseconds>(time).count() / 1000.f);
+		printf("ping time: %f ms\n", std::chrono::duration_cast<std::chrono::microseconds>(time).count() / 1000.f);
 	}
-	catch (icmp_exception& e) {
+	catch (socket_exception& e) {
 		error("Failure: %s\n", e.what());
 
 		return 1;

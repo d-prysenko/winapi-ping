@@ -2,7 +2,7 @@
 
 uint16_t calc_checksum(const char* buf, size_t size)
 {
-	uint16_t* p16_buf = (uint16_t*)buf;
+	const uint16_t* p16_buf = reinterpret_cast<const uint16_t*>(buf);
 
 	uint32_t sum = 0;
 
@@ -18,9 +18,9 @@ uint16_t calc_checksum(const char* buf, size_t size)
 		sum += *(uint8_t*)p16_buf;
 	}
 
-	sum = (sum & 0xffff) + (sum >> 16);
+	sum = (sum & 0xffff) + (sum >> 16);  
 
-	return (uint16_t)(~sum);
+	return ~sum;
 }
 
 ICMP_PACKET_BUF create_icmp_echo_packet(uint8_t code, uint16_t id, uint16_t seq_num, std::string data)
@@ -29,11 +29,13 @@ ICMP_PACKET_BUF create_icmp_echo_packet(uint8_t code, uint16_t id, uint16_t seq_
 
 	char* buf = new char[buflen];
 	memset(buf, 0, buflen);
-
-	ICMP_Echo_Request* icmp_echo = (ICMP_Echo_Request*)buf;
+	
+	ICMP_Echo_Request* icmp_echo = reinterpret_cast<ICMP_Echo_Request*>(buf);
 
 	icmp_echo->type = ICMP_Type::ECHO;
-	icmp_echo->id = htons(1);
+	icmp_echo->code = code;
+	icmp_echo->id = htons(id);
+	icmp_echo->seq_num = htons(seq_num);
 
 	memcpy(icmp_echo->data, data.c_str(), data.length());
 

@@ -38,7 +38,7 @@ void stderr_colorized(const char* fmt, uint16_t text_attr, va_list args)
 void print_bytes(const void* data, size_t size)
 {
 #ifdef _DEBUG
-	uint8_t* start = (uint8_t*)data;
+	const uint8_t* start = reinterpret_cast<const uint8_t*>(data);
 
 	for (int i = 0; i < size; i++)
 	{
