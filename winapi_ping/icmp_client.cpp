@@ -1,20 +1,16 @@
 #include "icmp_client.h"
 
 
+
+
 std::chrono::steady_clock::duration ICMP_Client::ping(const char* addr)
 {
 	WSADATA wsaData;
 	Stopwatch stopwatch;
 
-	ICMP_Echo echo;
-	echo.id = htons(1);
-	echo.data = htons(0x3131);
-
-	uint16_t checksum = calc_checksum(echo);
-
-	echo.checksum = checksum;
-
-	print_bytes(&echo, sizeof(echo));
+	ICMP_PACKET_BUF packet = create_icmp_echo_packet();
+	
+	print_bytes(packet.buf, packet.buflen);
 
 	int res = 0;
 
@@ -43,7 +39,7 @@ std::chrono::steady_clock::duration ICMP_Client::ping(const char* addr)
 		throw icmp_exception("create socket. WSAStartup code: " + std::to_string(last_err), last_err);
 	}
 
-	res = sendto(sock, (const char*)&echo, sizeof(echo), 0, addr_info->ai_addr, addr_info->ai_addrlen);
+	res = sendto(sock, packet.buf, packet.buflen, 0, addr_info->ai_addr, addr_info->ai_addrlen);
 
 	stopwatch.start();
 
@@ -56,7 +52,7 @@ std::chrono::steady_clock::duration ICMP_Client::ping(const char* addr)
 		throw icmp_exception("send. WSAStartup code: " + std::to_string(last_err), last_err);
 	}
 
-	printf("Bytes Sent: %ld\n", res);
+	debug("Bytes Sent: %ld\n", res);
 
 	// ip header
 	// 0x45, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x00, 0x6c, 0x01, 0x7e, 0x18, 0x08, 0x08, 0x08, 0x08, 0xc0, 0xa8, 0x00, 0x0f,
@@ -70,20 +66,23 @@ std::chrono::steady_clock::duration ICMP_Client::ping(const char* addr)
 	// Receive data until the server closes the connection
 	res = recv(sock, recvbuf, recvbuflen, 0);
 
-	if (res > 0) {
-		return stopwatch.duration();
-	}
-	else {
-		int last_err = WSAGetLastError();
-
-		throw icmp_exception("recv failed. WSAStartup code: " + std::to_string(last_err), last_err);
-	}
+	auto duration = stopwatch.duration();
+	int last_err = WSAGetLastError();
 
 	closesocket(sock);
 	freeaddrinfo(addr_info);
 	WSACleanup();
 
-	return std::chrono::steady_clock::duration();
+	if (res < 0) {
+		throw icmp_exception("recv failed. WSAStartup code: " + std::to_string(last_err), last_err);
+	}
+	else if (res == 0) {
+		throw icmp_exception("recv connection closed by server. WSAStartup code: " + std::to_string(last_err), last_err);
+	}
+
+	print_bytes(recvbuf, res);
+
+	return duration;
 }
 
 int ICMP_Client::init_winsock(WSADATA* wsaData)
@@ -119,35 +118,4 @@ SOCKET ICMP_Client::create_socket(addrinfo* addr_info)
 	return sock;
 }
 
-uint16_t ICMP_Client::calc_checksum(ICMP_Echo packet)
-{
-	uint16_t* start = (uint16_t*)&packet;
-	uint8_t size = sizeof(packet) / 2;
 
-	uint32_t acc = 0;
-
-	for (int i = 0; i < size; i++)
-	{
-		acc += (uint16_t)~(*start);
-		start++;
-	}
-
-	acc = (acc & 0xffff) + (acc >> 16);
-
-	return acc;
-}
-
-
-
-void ICMP_Client::print_bytes(const void* data, size_t size)
-{
-	uint8_t* start = (uint8_t*)data;
-
-	for (int i = 0; i < size; i++)
-	{
-		printf("%X ", *start);
-		start++;
-	}
-
-	printf("\n");
-}

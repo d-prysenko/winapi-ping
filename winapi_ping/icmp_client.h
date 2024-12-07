@@ -1,14 +1,16 @@
 #pragma once
 
-#include "stopwatch.h"
-#include "icmpdef.h"
 #include <WinSock2.h>
 #include <ws2tcpip.h>
 #include <exception>
 #include <string>
+#include "stopwatch.h"
+#include "icmpdef.h"
+#include "helpers.h"
 
 #define DEFAULT_BUFLEN 512
 #define SOCKET_READ_TIMEOUT_MSEC 10 * 1000
+
 
 class ICMP_Client
 {
@@ -21,10 +23,6 @@ private:
 	int init_winsock(WSADATA* wsaData);
 	addrinfo* resolve_addr(const char* addr);
 	SOCKET create_socket(addrinfo* addr_info);
-
-	uint16_t calc_checksum(ICMP_Echo packet);
-	uint16_t calc_checksum2(const char* buf, size_t size);
-	void print_bytes(const void* data, size_t size);
 };
 
 class icmp_exception : public std::exception
@@ -49,3 +47,4 @@ private:
 
 	size_t _err_code;
 };
+

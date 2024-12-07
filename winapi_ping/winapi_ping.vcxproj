@@ -127,10 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="icmpdef.cpp" />
     <ClCompile Include="icmp_client.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="helpers.h" />
     <ClInclude Include="icmpdef.h" />
     <ClInclude Include="icmp_client.h" />
     <ClInclude Include="stopwatch.h" />

@@ -26,10 +26,10 @@ int main()
 		printf("ping time: %f\n", std::chrono::duration_cast<std::chrono::microseconds>(time).count() / 1000.f);
 	}
 	catch (icmp_exception& e) {
-		fprintf(stderr, "Failure: %s\n", e.what());
+		error("Failure: %s\n", e.what());
+
+		return 1;
 	}
-
-
 
 	return 0;
 }
